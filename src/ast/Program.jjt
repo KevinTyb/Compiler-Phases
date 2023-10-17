@@ -1,0 +1,255 @@
+/*package ast;*/
+
+options {
+    MULTI=true;
+    KEEP_LINE_COLUMN = false;
+  }
+  
+  PARSER_BEGIN(Program)
+  
+  public class Program {
+  
+    public static void main(String args[]) {
+        Program ast = new Program(System.in);
+      try {
+        SimpleNode node = ast.Start(); /* Create instance of SimpleNode and use Start to
+                                       * parse input text and construct AST */
+  
+        /* create the visitor and traverse the tree with it*/
+  
+        node.dump(""); /* Recursively prints text of the AST to terminal starting from root */
+        System.out.println("Process Successful.");
+      } catch (Exception e) {
+        System.out.println("Unidentified Input.");
+        System.out.println(e.getMessage());
+        e.printStackTrace();
+      }
+    }
+  }
+  
+  PARSER_END(Program)
+  
+  
+  /* WHITE SPACE */
+  SKIP : {    " " | "\t" | "\r" | "\n" }
+  
+  /* COMMENTS */
+  SKIP :
+  {
+      "//"
+  |   <"//" (~["\n","\r"])*>
+  |   <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/" >
+  }
+  
+  TOKEN :
+  {
+    < ABSTRACT: "abstract" >
+  | < BOOLEAN: "boolean" >
+  | < INSTANCE_INIT: "instance_init" >
+  | < BREAK: "break" >
+  | < BYTE: "byte" >
+  | < CASE: "case" >
+  | < CATCH: "catch" >
+  | < CHAR: "char" >
+  | < CLASS: "class" >
+  | < CONST: "const" >
+  | < CONTINUE: "continue" >
+  | < _DEFAULT: "default" >
+  | < DO: "do" >
+  | < DOUBLE: "double" >
+  | < ELSE: "else" >
+  | < EXTENDS: "extends" >
+  | < FALSE: "false" >
+  | < FINAL: "final" >
+  | < FINALLY: "finally" >
+  | < FLOAT: "float" >
+  | < FOR: "for" >
+  | < GOTO: "goto" >
+  | < IF: "if" >
+  | <IFELSE: "ifelse">
+  | < IMPLEMENTS: "implements" >
+  | < IMPORT: "import" >
+  | < INSTANCEOF: "instanceof" >
+  | < INT: "int" >
+  | < INTERFACE: "interface" >
+  | < LONG: "long" >
+  | < NATIVE: "native" >
+  | < NEW: "new" >
+  | < NULL: "null" >
+  | < PACKAGE: "package">
+  | < PRIVATE: "private" >
+  | < PROTECTED: "protected" >
+  | < PUBLIC: "public" >
+  | < RETURN: "return" >
+  | < SHORT: "short" >
+  | < STATIC: "static" >
+  | < SUPER: "super" >
+  | < SWITCH: "switch" >
+  | < SYNCHRONIZED: "synchronized" >
+  | < THIS: "this" >
+  | < THROW: "throw" >
+  | < THROWS: "throws" >
+  | < TRANSIENT: "transient" >
+  | < TRUE: "true" >
+  | < TRY: "try" >
+  | < VOID: "void" >
+  | < VOLATILE: "volatile" >
+  | < WHILE: "while" >
+  | < STRICTFP: "strictfp" >
+  }
+
+  /*SEPARATORS*/
+TOKEN : {
+    < LBRACKET: "[" >
+  | < RBRACKET: "]" >
+  | < COMMA: "," >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < LBRACE: "{" >
+  | < RBRACE: "}" >
+  | < SEMICOLON: ";" >
+  | < DOT: "." >
+  }
+  
+  TOKEN : {
+    < STRING: "\"" (~["\""])* "\"" >
+  | < ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9","_"])* >
+  | < DIGIT: ["0"-"9"] >
+  | < REAL: (["0"-"9"])+ ("." (["0"-"9"])+)? >
+  }
+  
+  /* Following method parses an expression and traverses AST and returns to root node.
+   * prints AST to terminal.
+   */
+  SimpleNode Start() : {}
+  {
+  Expression() ";"
+  { return jjtThis; }
+  }
+  
+  void ConditionalExpression() #void : {}
+  {
+   ConditionalOrExpression() [ "?" Expression() ":" ConditionalOrExpression() ]
+  }
+  
+  void ConditionalOrExpression() #void : {}
+  {
+  (
+  ConditionalAndExpression() ("||" ConditionalAndExpression() )*
+  ) #Or(>1)
+  }
+  
+  void ConditionalAndExpression() #void : {}
+  {
+  (
+  InclusiveOrExpression() ("&&" InclusiveOrExpression() )*
+  ) #And(>1)
+  }
+  
+  void InclusiveOrExpression() #void :
+  {}
+  {
+  (
+    ExclusiveOrExpression() ("|" ExclusiveOrExpression() )*
+  ) #BitOr(>1)
+  }
+  
+  void ExclusiveOrExpression() #void :
+  {}
+  {
+  (
+    AndExpression() ("^" AndExpression() )*
+  ) #BitXor(>1)
+  }
+  
+  void AndExpression() #void :
+  {}
+  {
+  (
+    EqExpression() ("&" EqExpression() )*
+  ) #BitAnd(>1)
+  }
+  
+  void EqExpression() #void :
+  {}
+  {
+  (
+    RelationalExpression() ( ( "==" | "!=" ) RelationalExpression() )*
+  ) #Equal(>1)
+  }
+  
+  void RelationalExpression() #void :
+  {}
+  {
+  (
+    ShiftExpression() ( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+  ) #Relational(>1)
+  }
+  
+  void ShiftExpression() #void :
+  {}
+  {
+  (
+    AddExpression() ( LOOKAHEAD(2) ( "<<" | ">>" | ">>>") AddExpression() )*
+  ) #Shift(>1)
+  }
+  
+  void AddExpression() #void : {}
+  {
+  (
+    MultiplicativeExpression() ( ( "+" | "-" ) MultiplicativeExpression() )*
+  ) #Add(>1)
+  }
+  
+  void MultiplicativeExpression() #void : {}
+  {
+  (
+    UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+  ) #Mult(>1)
+  }
+  
+  void UnaryExpression() #void : {}
+  {
+    "(" Expression() ")" | UnaryExpressionNotPlusMinus() |Identifier() | Integer()
+  }
+  
+  void UnaryExpressionNotPlusMinus() #void : {}
+  {
+  (
+  ("~" | "!")UnaryExpression() | PreIncrementExpression() | PreDecrementExpression()
+  ) #Unary
+  }
+  
+  void PreIncrementExpression() # void : {}
+  {
+  (
+  "++" UnaryExpression()
+  ) #PreIncrement
+  }
+  
+  void PreDecrementExpression() #void : {}
+  {
+  (
+  "--" UnaryExpression()
+  ) #PreDecrement
+  }
+  
+  /*** INTEGER AND IDENTIFIER BUILD NODES FOR IDENTIFIER AND INTEGER LITERALS */
+  void Identifier() :
+  {
+      Token t;
+  }
+  {
+  t = <ID>
+  }
+  
+  void Integer() #Integer : {}
+  {
+    <DIGIT>
+  }
+  
+  void Expression() #void : {}
+  {
+    ConditionalExpression()
+  }
+  

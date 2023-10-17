@@ -1,0 +1,640 @@
+options {
+  STATIC = false;
+  BUILD_PARSER = true;
+}
+/*** LEXICAL ANALYSIS STARTS HERE ***/
+
+PARSER_BEGIN(MyParser)
+
+public class MyParser {
+    public static void main(String[] args) {
+      MyParser lexer;
+        if (args.length == 0) {
+            System.out.println("JavaCC Lexer: Reading from standard input...");
+            lexer = new MyParser (System.in);
+        } else if (args.length == 1) {
+            System.out.println("JavaCC Lexer: Reading from file " + args [0] + "...");
+            try {
+                lexer = new MyParser(new java.io.FileInputStream(args[0]));
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("JavaCC Lexer: File " + args[0] + " not found");
+                return;
+            }
+        } else {
+            System.out.println("JavaCC Lexer: Usage is one of:");
+            System.out.println("    java MyParser < inputfile");
+            System.out.println("OR");
+            System.out.println("    java MyParser inputfile");
+            return;
+        }
+
+            Token token;
+            try{
+            while ((token = lexer.getNextToken()).kind != MyParserConstants.EOF) {
+                System.out.println(token);
+                }
+                System.out.println("JavaCC Lexer: Java program lexed successfully");
+        } catch (TokenMgrError e) {
+            System.out.println("Error: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+}
+PARSER_END(MyParser)
+
+/* WHITE SPACE */
+SKIP : {    " " | "\t" | "\r" | "\n" }
+
+/* COMMENTS */
+SKIP :
+{
+    "//"
+|   <"//" (~["\n","\r"])*>
+|   <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/" >
+}
+
+/* Reserved words only in Java */
+TOKEN :
+{
+  < ABSTRACT: "abstract" >
+| < BOOLEAN: "boolean" >
+| < INSTANCE_INIT: "instance_init" >
+| < BREAK: "break" >
+| < BYTE: "byte" >
+| < CASE: "case" >
+| < CATCH: "catch" >
+| < CHAR: "char" >
+| < CLASS: "class" >
+| < CONST: "const" >
+| < CONTINUE: "continue" >
+| < _DEFAULT: "default" >
+| < DO: "do" >
+| < DOUBLE: "double" >
+| < ELSE: "else" >
+| < EXTENDS: "extends" >
+| < FALSE: "false" >
+| < FINAL: "final" >
+| < FINALLY: "finally" >
+| < FLOAT: "float" >
+| < FOR: "for" >
+| < GOTO: "goto" >
+| < IF: "if" >
+| <IFELSE: "ifelse">
+| < IMPLEMENTS: "implements" >
+| < IMPORT: "import" >
+| < INSTANCEOF: "instanceof" >
+| < INT: "int" >
+| < INTERFACE: "interface" >
+| < LONG: "long" >
+| < NATIVE: "native" >
+| < NEW: "new" >
+| < NULL: "null" >
+| < PACKAGE: "package">
+| < PRIVATE: "private" >
+| < PROTECTED: "protected" >
+| < PUBLIC: "public" >
+| < RETURN: "return" >
+| < SHORT: "short" >
+| < STATIC: "static" >
+| < SUPER: "super" >
+| < SWITCH: "switch" >
+| < SYNCHRONIZED: "synchronized" >
+| < THIS: "this" >
+| < THROW: "throw" >
+| < THROWS: "throws" >
+| < TRANSIENT: "transient" >
+| < TRUE: "true" >
+| < TRY: "try" >
+| < VOID: "void" >
+| < VOLATILE: "volatile" >
+| < WHILE: "while" >
+| < STRICTFP: "strictfp" >
+}
+
+/* Words only used by JavaCC and not Java */
+TOKEN :
+{
+  < _OPTIONS: "options" >
+| < _LOOKAHEAD: "LOOKAHEAD" >
+| < _EOF: "EOF" >
+}
+
+TOKEN : {
+  < STRING: "\"" (~["\""])* "\"" >
+| < ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9","_"])* >
+| < DIGIT: ["0"-"9"] >
+| < REAL: (["0"-"9"])+ ("." (["0"-"9"])+)? >
+}
+
+/*SEPARATORS*/
+TOKEN : {
+  < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < COMMA: "," >
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < SEMICOLON: ";" >
+| < DOT: "." >
+}
+
+/*OPERATORS*/
+TOKEN : {
+  < PLUS: "+" >
+| < MINUS: "-" >
+| <MULTIPLY: "*" >
+| < DIVIDE: "/" >
+| < ASSIGN: "=" >
+| < MODULO: "%" >
+| < EQ: "==" >
+| < NOTEQ: "!=" >
+| < LT: "<" >
+| < LEQ: "<=" >
+| < GT: ">" >
+| < GEQ: ">=" >
+| < AND: "&&" >
+| < NOT: "!" >
+| < OR: "||" >
+| < BIT_AND: "&" >
+| < BIT_OR: "|" >
+| < BIT_NOT: "~" >
+| < XOR: "^" >
+| < LSHIFT: "<<" >
+| < RSHIFT: ">>" >
+| < URSHIFT: ">>>" >
+| < INCREMENT: "++" >
+| < DECREMENT: "--" >
+}
+
+
+/*** JAVACC GRAMMAR STARTS HERE ***/
+
+/* Rule for assigning a variable*/
+void Assignment() :
+{}
+{
+  Identifier() "=" Terms() ";"
+}
+
+void Identifier() throws ParseException :
+{}
+{
+  <ID>
+}
+
+/*** Rules for mathematical procedures between operators ***/
+void Terms() :
+{}
+{
+  Term() (AdditionOperator() Term())*
+}
+
+void AdditionOperator() :
+{}
+{
+  "+" | "-"
+}
+
+void Term() :
+{}
+{
+  Factor() (MultiplicationOperator() Factor())*
+}
+
+void MultiplicationOperator() :
+{}
+{
+  "*" | "/"
+}
+
+void Factor() :
+{}
+{
+  <LPAREN> Expression() <RPAREN>
+  | Number()
+  | Identifier()
+}
+
+/* Defines syntax for number*/
+void Number() :
+{}
+{
+  <REAL> | <DIGIT>
+}
+
+/*** End of rules for mathematical procedures between operators ***/
+
+
+/*** Rules for defining loops and other statements ***/
+void Statement() :
+{}
+{
+  IfStatement()
+  | IfElseStatement()
+  | WhileStatement()
+  | ForStatement()
+  | Assignment()
+  | Block()
+}
+
+void IfStatement() :
+{}
+{
+  <IF> <LPAREN> Expression() <RPAREN> Statement()
+}
+
+void IfElseStatement() :
+{}
+{
+  <ELSE> <LPAREN> Expression() <RPAREN> Statement()
+}
+
+void WhileStatement() :
+{}
+{
+  <WHILE> <LPAREN> Expression() <RPAREN> Statement()
+}
+
+void ForStatement() :
+{}
+{
+  <FOR> <LPAREN> ForInit() ";" Expression() ";" ForUpdate() <RPAREN> Statement()
+}
+
+void ForInit() : /* Rule for updating and initialising a for loop */
+{}
+{
+  Assignment() ("," Assignment() ) *
+}
+
+void ForUpdate() : /* Rule for updating and initialising a for loop */
+{}
+{
+  Assignment() ("," Assignment() )*
+}
+
+void Block() :
+{}
+{
+  <LBRACE> (Statement() ";")* <RBRACE>
+}
+/*** End of rules for defining loops and other statements ***/
+
+/*** Rules for defining a Java compilation unit ***/
+void CompilationUnit() :
+{}
+{
+  [ PackageDeclaration() ]
+  ( ImportDeclaration() )*
+  ( TypeDeclaration() )*
+}
+
+void PackageDeclaration() :
+{}
+{
+  "package" Name() ";"
+}
+
+void ImportDeclaration() :
+{}
+{
+  "import" Name() [ "." "*" ] ";"
+}
+
+void TypeDeclaration() :
+{}
+{
+    LOOKAHEAD( ( "abstract" | "final" | "public" )* "class" )
+  ClassDeclaration() | InterfaceDeclaration()
+|
+  ";" /* Indicates empty statement */
+}
+/*** End of rules for defining a Java compilation unit ***/
+
+/*** Grammar defining rules for declaring and using identifiers, data types, and type declarations ***/
+void Name() :
+{}
+{
+    "id" ("." "id" )*
+}
+
+void NameList() :
+{}
+{
+    Name() ( "," Name() )*
+}
+
+void Type() :
+{}
+{
+    ( PrimitveType() | Name() ) ( "[" "]")*
+}
+
+void PrimitveType() :
+{}
+{
+    "boolean"
+|
+    "char"
+|
+    "byte"
+|
+    "short"
+|
+    "int"
+|
+    "long"
+|
+    "float"
+|
+    "double"
+}
+
+void ClassDeclaration() :
+{}
+{
+  [ "abstract" | "final" | "public" ] "class" <ID> [ TypeParameters() ] [ "extends" Name() ] [ "implements" NameList() ] ClassBody()
+}
+
+void ClassBody() :
+{}
+{
+  "{" ( ClassBodyDeclaration() )* "}"
+}
+
+void InterfaceDeclaration() :
+{}
+{
+  "interface" <ID> [ TypeParameters() ] [ ExtendsInterfaces() ] InterfaceBody()
+}
+
+void ExtendsInterfaces() :
+{}
+{
+  "extends" <ID> ( "," <ID> )*
+}
+
+void TypeParameters() :
+{}
+{
+  "<" TypeParameter() ( "," TypeParameter() )* ">"
+}
+
+void TypeParameter() :
+{}
+{
+  <ID> [ TypeBound() ]
+}
+
+void TypeBound() :
+{}
+{
+  "extends" Type() ( "&" Type() )*
+}
+
+void Implements() :
+{}
+{
+  "implements" TypeList()
+}
+
+void TypeList() :
+{}
+{
+  Name() ("," Name())*
+}
+
+/*** End of grammar defining rules for declaring and using identifiers, data types, and type declarations ***/
+
+/*** Grammar defining class and ineterface declarations, member declarations,
+* field declarations, method declarations, and variable declarations
+***/
+void InterfaceBody() :
+{}
+{
+  "{" ( InterfaceBodyDeclaration() )* "}"
+}
+
+void ClassBodyDeclaration() :
+{}
+{
+  ClassMemberDeclaration() | InstanceInitializer()
+}
+
+void InstanceInitializer() :
+{}
+{
+  <INSTANCE_INIT> Block()
+}
+
+void InterfaceBodyDeclaration() :
+{}
+{
+  InterfaceMemberDeclaration()
+}
+
+void ClassMemberDeclaration() :
+{}
+{
+  FieldDeclaration() | MethodDeclaration() | ClassDeclaration() | InterfaceDeclaration()
+}
+
+void InterfaceMemberDeclaration() :
+{}
+{
+  ClassDeclaration() | InterfaceDeclaration()
+}
+
+void FieldDeclaration() :
+{}
+{
+  Type() VariableDeclarators() ";"
+}
+
+void VariableDeclarators() :
+{}
+{
+  VariableDeclarator() ( "," VariableDeclarator() )*
+}
+
+void VariableDeclarator() :
+{}
+{
+  <ID> [ "=" VariableInitializer() ]
+}
+
+void VariableInitializer() :
+{}
+{
+  ArrayInitializer() | Expression()
+}
+
+void ArrayInitializer() :
+{}
+{
+  "{" [ VariableInitializer() ( "," VariableInitializer() )* [ "," ] ] "}"
+}
+
+void MethodDeclaration() :
+{}
+{
+  MethodHeader() MethodBody()
+}
+
+void MethodHeader() :
+{}
+{
+( MethodModifier() )* Type() <ID> [ TypeParameters() ] "(" [ FormalParameterList() ] ")" [ Throws() ]
+}
+
+void MethodModifier() :
+{}
+{
+  "public" | "protected" | "private" | "static" | "final" | "synchronized" | "native" | "abstract" | "strictfp"
+}
+
+void FormalParameterList() :
+{}
+{
+  FormalParameter() ( "," FormalParameter() )*
+}
+
+void FormalParameter() :
+{}
+{
+  Type() VariableDeclaratorId()
+}
+
+void VariableDeclaratorId() :
+{}
+{
+  <ID>
+}
+/*** END of grammar defining class and ineterface declarations, member declarations,
+* field declarations, method declarations, and variable declarations
+***/
+
+void Throws() : /* Rule for indicating possible exceptions */
+{}
+{
+  "throws" QualifiedIdentifierList()
+}
+
+void QualifiedIdentifierList() :
+{}
+{
+  Name() ( "," Name() )*
+}
+
+void MethodBody() : /* Rules for defining the body of a method, it being block of statements or a semicolon */
+{}
+{
+  Block() | <SEMICOLON>
+}
+
+/*EXPRESSION GRAMMAR*/
+
+void Expression() :
+{}
+{
+  ConditionalExpression() [AssignmentOperator() Expression() ]
+}
+
+void AssignmentOperator() :
+{}
+{
+  "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "<<=" | ">>=" | ">>>=" |
+  "&=" | "^=" | "|="
+}
+
+void ConditionalExpression() :
+{}
+{
+  ConditionalOrExpression() [ "?" Expression() ":" ConditionalOrExpression() ]
+}
+
+void ConditionalOrExpression() :
+{}
+{
+  ConditionalAndExpression() ( "||" ConditionalAndExpression() )*
+}
+
+void ConditionalAndExpression() :
+{}
+{
+  InclusiveOrExpression() ("&&" InclusiveOrExpression() )*
+}
+
+void InclusiveOrExpression() :
+{}
+{
+  ExclusiveOrExpression() ("|" ExclusiveOrExpression() )*
+}
+
+void ExclusiveOrExpression() :
+{}
+{
+  AndExpression() ("^" AndExpression() )*
+}
+
+void AndExpression() :
+{}
+{
+  EqExpression() ("&" EqExpression() )*
+}
+
+void EqExpression() :
+{}
+{
+  RelationalExpression() ( ( "==" | "!=" ) RelationalExpression() )*
+}
+
+void RelationalExpression() :
+{}
+{
+  ShiftExpression() ( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+}
+
+void ShiftExpression() :
+{}
+{
+  AddExpression() ( LOOKAHEAD(2) ( "<<" | ">>" | ">>>") AddExpression() )*
+}
+
+void AddExpression() :
+{}
+{
+  MultiExpression() ( ( "+" | "-" ) MultiExpression() )*
+}
+
+void MultiExpression() :
+{}
+{
+  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+}
+
+void UnaryExpression() :
+{}
+{
+  ("+" | "-" | "~") UnaryExpression() | PreIncrementExpression()
+  | PreDecrementExpression() | UnaryExpressionNotPlusMinus()
+}
+
+void PreIncrementExpression() :
+{}
+{
+  "++" UnaryExpression()
+}
+
+void PreDecrementExpression() :
+{}
+{
+  "--" UnaryExpression()
+}
+
+void UnaryExpressionNotPlusMinus() :
+{}
+{
+  ("~" | "!") UnaryExpression()
+}

@@ -1,0 +1,23 @@
+public class MyClass {
+    private int myNumber;
+
+    public MyClass(int number) {
+        myNumber = number;
+    }
+
+    public void setNumber(int number) {
+        myNumber = number;
+    }
+
+    public int getNumber() {
+        return myNumber;
+    }
+
+    public static void main(String[] args) {
+        MyClass obj = new MyClass(42);
+        System.out.println("My number is: " + obj.getNumber());
+        obj.setNumber(10);
+        System.out.println("My number is now: " + obj.getNumber());
+    }
+}
+
