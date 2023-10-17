@@ -1,0 +1,4 @@
+parser/*.java
+parser/*.class
+
+*.txt
