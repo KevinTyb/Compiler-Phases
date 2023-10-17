@@ -1,0 +1,31 @@
+# Exclude generated JavaCC files
+*.class
+*.java
+
+# Allow MyParser.jj and test files
+!src/parser/MyParser.jj
+!src/parser/assignmentStatement.txt
+!src/parser/calculator.txt
+!src/parser/codeTest.txt
+!src/parser/forLoop.txt
+!src/parser/ifStatement.txt
+!src/parser/nestedLoop.txt
+
+# Allow Program.jj and Program.jjt 
+!src/ast/Program.jj
+!src/ast/Program.jjt
+
+# Allow Intermediate Code Gen file and optimisations
+!src/IRGen/IntermediateCode.java
+!src/IRGen/Optimisations/ConstantFolding.java
+!src/IRGen/Optimisations/deadCode.java
+!src/IRGen/Optimisations/subExpr.java
+
+# Allow specific files in the "SymbolTable" folder
+!src/SymbolTable/expressionSymbolTable.java
+
+# Allow Machine Code pseudo code generation
+!src/MachineCode/machineCode.java
+
+# Allow ReadMe file
+!src/ReadMe.txt
