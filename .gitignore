@@ -1,6 +1,6 @@
 # Exclude generated JavaCC files
-*.class
-*.java
+src/parser/*.class
+src/parser/*.java
 
 # Allow MyParser.jj and test files
 !src/parser/MyParser.jj
